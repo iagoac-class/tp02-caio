@@ -99,17 +99,140 @@ double arvore_binaria(int instancia_num) {
     return (tempo);
 }
 
-// double arvore_balanceada(int instancia_num) {
-//     double tempo = 0;
-//     clock_t begin = clock();
+//Funções árvore AVL
+int altura(struct NoAVL* no){
+    if(no == NULL){
+        return 0;
+    }
+    return no->altura;
+}
+
+int max(int a, int b){
+    return (a > b) ? a : b;
+}
+
+int fator_balanceamento(struct NoAVL *no){
+    if(no == NULL){
+        return 0;
+    }
+    return altura(no->esquerda) - altura(no->direita);
+}
+
+struct NoAVL* rotacao_direita(struct NoAVL* y){
+    struct NoAVL* x = y->esquerda;
+    struct NoAVL* T2 = x->direita;
+
+    x->direita = y;
+    y->esquerda = T2;
+
+    y->altura = max(altura(y->esquerda), altura(y->direita)) + 1;
+    x->altura = max(altura(x->esquerda), altura(x->direita)) + 1;
+
+    return x;
+}
+
+struct NoAVL* rotacao_esquerda(struct NoAVL* x){
+    struct NoAVL* y = x->direita;
+    struct NoAVL* T2 = y->esquerda;
+
+    y->esquerda = x;
+    x->direita = T2;
+
+    x->altura = max(altura(x->esquerda), altura(x->direita)) + 1;
+    y->altura = max(altura(y->esquerda), altura(x->direita)) + 1;
+
+    return y;
+}
+
+struct NoAVL* rotacao_esquerda_direita(struct NoAVL* raiz){
+    raiz->esquerda = rotacao_esquerda(raiz->esquerda);
+    return rotacao_direita(raiz);
+}
+
+struct NoAVL* rotacao_direita_esquerda(struct NoAVL* raiz){
+    raiz->direita = rotacao_direita(raiz->direita);
+    return rotacao_esquerda(raiz);
+}
+
+struct NoAVL* inserir_AVL(struct NoAVL* raiz, int valor){
+    if(raiz == NULL){
+        struct NoAVL* novoNo = (struct NoAVL*) malloc(sizeof(struct NoAVL));
+        novoNo->valor = valor;
+        novoNo->esquerda = novoNo->direita = NULL;
+        novoNo->altura = 1;
+        return novoNo;
+    }
+
+    if (valor < raiz->valor){
+        raiz->esquerda = inserir_AVL(raiz->esquerda, valor);
+    }else if(valor > raiz->valor){
+        raiz->direita = inserir_AVL(raiz->direita, valor);
+    }else{
+        return raiz;
+    }
+
+    raiz->altura = 1 + max(altura(raiz->esquerda), altura(raiz->direita));
+
+    int balance = fator_balanceamento(raiz);
+
+    if(balance > 1 && valor < raiz->esquerda->valor){
+        return rotacao_direita(raiz);
+    }
+
+    if(balance < -1 && valor > raiz->direita->valor){
+        return rotacao_esquerda(raiz);
+    }
+
+    if(balance > 1 && valor > raiz->esquerda->valor){
+        return rotacao_esquerda_direita(raiz);
+    }
+
+    if(balance < -1 && valor < raiz->direita->valor){
+        return rotacao_direita_esquerda(raiz);
+    }
+
+    return raiz;
+}
+
+double arvore_balanceada(int instancia_num) {
+    double tempo = 0;
+    clock_t begin = clock();
+
+    struct NoAVL* raiz = NULL;
+
+    char nome_arquivo[30];
+    sprintf(nome_arquivo, "instancias/%d.txt", instancia_num);
+
+    FILE *arquivo = fopen(nome_arquivo, "r");
+    if(arquivo == NULL){
+        printf("Erro ao abrir o arquivo de instância.\n");
+        exit(1);
+    }
+
+    //int i = 0, r = 0;
+
+    char operacao;
+    int valor;
+    while(fscanf(arquivo, "%c %d", &operacao, &valor) != EOF){
+        if(operacao == 'I'){
+            raiz = inserir_AVL(raiz, valor);
+            //i++;
+        }else if(operacao == 'R'){
+            //raiz = remover_AVL(raiz, valor);
+            //r++;
+        }
+    }
+
+    fclose(arquivo);
 
     
-//     clock_t end = clock();
-//     // calcula o tempo decorrido encontrando a diferença (end - begin) e
-//     // dividindo a diferença por CLOCKS_PER_SEC para converter em segundos
-//     tempo += (double)(end - begin) / CLOCKS_PER_SEC;
-//     return (tempo);
-// }
+    clock_t end = clock();
+    // calcula o tempo decorrido encontrando a diferença (end - begin) e
+    //printf("\nForam inseridos: %d números | Foram removidos: %d números\n", i, r);
+    // dividindo a diferença por CLOCKS_PER_SEC para converter em segundos
+    tempo += (double)(end - begin) / CLOCKS_PER_SEC;
+    return (tempo);
+}
 
 
 int main(int argc, char* argv[]) {
@@ -125,10 +248,10 @@ int main(int argc, char* argv[]) {
     }
     
     double tempo_n_balanceada = arvore_binaria(instancia_num);
-    // double tempo_balanceada = arvore_balanceada(instancia_num);
+    double tempo_balanceada = arvore_balanceada(instancia_num);
 
-    // printf("%f\n", tempo_balanceada);
-    printf("%f\n", tempo_n_balanceada);
+    printf("Árvore binária não-balanceada: %f\n", tempo_n_balanceada);
+    printf("Árvore balanceada (AVL): %f\n", tempo_balanceada);
 
     return (1);
 }

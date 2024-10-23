@@ -171,6 +171,181 @@ double arvore_binaria(int instancia_num) {
 ```
 Por fim, o incremento na função já pré implementada que retorna o tempo de execução em milesegundos do algoritmo. Basicamente, ele abre o arquivo e verifca a primeira letra para decidir se será uma remoção ou inserção e já realiza a operação, assim recursivamente até o fim do arquivo de instância.
 
+```c
+// Estrtura da árvore AVL
+struct NoAVL{
+    int valor;
+    struct NoAVL *esquerda;
+    struct NoAVL *direita;
+    int altura;
+};
+```
+
+No trecho acima, estamos declarando a estrutura do árvore AVL que é semelhante a da árvore binária adicionando apenas o int altura para fim de calcular se um nó está balanceado ou não.
+
+```c
+//Funções para árvore AVL
+int altura(struct NoAVL* no);
+int fator_balanceamento(struct NoAVL* no);
+int max(int a, int b);
+//struct NoAVL* menor_valor_no_AVL(struct NoAVL* no);
+struct NoAVL* inserir_AVL(struct NoAVL* raiz, int valor);
+//struct NoAVL* remover_AVL(struct NoAVL* raiz, int valor);
+
+//Funções de rotação
+struct NoAVL* rotacao_direita(struct NoAVL* y);
+struct NoAVL* rotacao_esquerda(struct NoAVL* x);
+struct NoAVL* rotacao_esquerda_direita(struct NoAVL* raiz);
+struct NoAVL* rotacao_direita_esquerda(struct NoAVL* raiz);
+```
+
+Declaração das funções para o funcionamento da árvore AVL, uma função para calcular altura, outra para verificar o fator de balanceamento, outra para verificar o maior valor entre dois nós e as funções de inserção e remoção, como também uma função para encontrar o menor_valor_no para aulixar a remoção a encontrar um nó para substituir o nó a ser removido. Como também, às funções de rotação simples e dupla.
+
+```c
+//Funções árvore AVL
+int altura(struct NoAVL* no){
+    if(no == NULL){
+        return 0;
+    }
+    return no->altura;
+}
+
+int max(int a, int b){
+    return (a > b) ? a : b;
+}
+
+int fator_balanceamento(struct NoAVL *no){
+    if(no == NULL){
+        return 0;
+    }
+    return altura(no->esquerda) - altura(no->direita);
+}
+
+struct NoAVL* rotacao_direita(struct NoAVL* y){
+    struct NoAVL* x = y->esquerda;
+    struct NoAVL* T2 = x->direita;
+
+    x->direita = y;
+    y->esquerda = T2;
+
+    y->altura = max(altura(y->esquerda), altura(y->direita)) + 1;
+    x->altura = max(altura(x->esquerda), altura(x->direita)) + 1;
+
+    return x;
+}
+
+struct NoAVL* rotacao_esquerda(struct NoAVL* x){
+    struct NoAVL* y = x->direita;
+    struct NoAVL* T2 = y->esquerda;
+
+    y->esquerda = x;
+    x->direita = T2;
+
+    x->altura = max(altura(x->esquerda), altura(x->direita)) + 1;
+    y->altura = max(altura(y->esquerda), altura(x->direita)) + 1;
+
+    return y;
+}
+
+struct NoAVL* rotacao_esquerda_direita(struct NoAVL* raiz){
+    raiz->esquerda = rotacao_esquerda(raiz->esquerda);
+    return rotacao_direita(raiz);
+}
+
+struct NoAVL* rotacao_direita_esquerda(struct NoAVL* raiz){
+    raiz->direita = rotacao_direita(raiz->direita);
+    return rotacao_esquerda(raiz);
+}
+
+struct NoAVL* inserir_AVL(struct NoAVL* raiz, int valor){
+    if(raiz == NULL){
+        struct NoAVL* novoNo = (struct NoAVL*) malloc(sizeof(struct NoAVL));
+        novoNo->valor = valor;
+        novoNo->esquerda = novoNo->direita = NULL;
+        novoNo->altura = 1;
+        return novoNo;
+    }
+
+    if (valor < raiz->valor){
+        raiz->esquerda = inserir_AVL(raiz->esquerda, valor);
+    }else if(valor > raiz->valor){
+        raiz->direita = inserir_AVL(raiz->direita, valor);
+    }else{
+        return raiz;
+    }
+
+    raiz->altura = 1 + max(altura(raiz->esquerda), altura(raiz->direita));
+
+    int balance = fator_balanceamento(raiz);
+
+    if(balance > 1 && valor < raiz->esquerda->valor){
+        return rotacao_direita(raiz);
+    }
+
+    if(balance < -1 && valor > raiz->direita->valor){
+        return rotacao_esquerda(raiz);
+    }
+
+    if(balance > 1 && valor > raiz->esquerda->valor){
+        return rotacao_esquerda_direita(raiz);
+    }
+
+    if(balance < -1 && valor < raiz->direita->valor){
+        return rotacao_direita_esquerda(raiz);
+    }
+
+    return raiz;
+}
+
+double arvore_balanceada(int instancia_num) {
+    double tempo = 0;
+    clock_t begin = clock();
+
+    struct NoAVL* raiz = NULL;
+
+    char nome_arquivo[30];
+    sprintf(nome_arquivo, "instancias/%d.txt", instancia_num);
+
+    FILE *arquivo = fopen(nome_arquivo, "r");
+    if(arquivo == NULL){
+        printf("Erro ao abrir o arquivo de instância.\n");
+        exit(1);
+    }
+
+    //int i = 0, r = 0;
+
+    char operacao;
+    int valor;
+    while(fscanf(arquivo, "%c %d", &operacao, &valor) != EOF){
+        if(operacao == 'I'){
+            raiz = inserir_AVL(raiz, valor);
+            //i++;
+        }else if(operacao == 'R'){
+            //raiz = remover_AVL(raiz, valor);
+            //r++;
+        }
+    }
+```
+
+Implementação das funções para a execução da árvore AVL.
+
+<h2><a>Tabela de comparação de tempo de execução</h2></a>
+
+| Arquivo | Árv. balanceada | Árv. Não balanceada |
+|---------|-----------------|---------------------|
+| 1.txt   | 0.005020        | 0.488574            |
+| 2.txt   | 0.006404        | 0.006307            |
+| 3.txt   | 0.005764        | 0.971890            |
+
+<b>1.txt:</b> O arquivo em questão tem 10.000 inserções em ordem crescente e 10.000 remoções em ordem crescente.
+
+<b>2.txt:</b> O arquivo em questão tem 10.000 inserções aleatórias e 10.000 remoções aleatórias.
+
+<b>3.txt:</b> O arquivo em questão tem 10.000 inserções em ordem crescente e 10.000 remoções em ordem decrescente.
+
+Bom interpretando a tabela, fica evidente que árvores balanceadas possuem uma vantagem, entretanto há casos que ela pode ser mais lenta que uma simples árvore binária como foi o caso do documento 2.txt, em contrapartida no caso do arquivo 1.txt onde às 10.000 inserções são feitas em ordem crescente formando assim uma grande lista, o custo para removê-las é bem mais alto comparada com uma árvore balanceada para a mesma entrada de dados, é interessante de se reparar que à diferença no tempo de execução na árvore não balanceada no arquivos 1.txt para o 3.txt, é quase o dobro. Isto ocorre, pois como nosso arquivo 3.txt está removendo em ordem decrescente, nosso algoritmo deve fazer o dobro de comparações comparado ao arquivo 1.txt onde ocorre a remoção em ordem crescente. 
+
+
 ---
 
 <h2><a>Compilando</a></h2>

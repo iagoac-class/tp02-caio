@@ -20,9 +20,11 @@ struct NoAVL{
 int altura(struct NoAVL* no);
 int fator_balanceamento(struct NoAVL* no);
 int max(int a, int b);
-//struct NoAVL* menor_valor_no_AVL(struct NoAVL* no);
+
+
+struct NoAVL* menor_valor_no_AVL(struct NoAVL* no);
 struct NoAVL* inserir_AVL(struct NoAVL* raiz, int valor);
-//struct NoAVL* remover_AVL(struct NoAVL* raiz, int valor);
+struct NoAVL* remover_AVL(struct NoAVL* raiz, int valor);
 
 //Funções de rotação
 struct NoAVL* rotacao_direita(struct NoAVL* y);

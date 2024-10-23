@@ -194,6 +194,76 @@ struct NoAVL* inserir_AVL(struct NoAVL* raiz, int valor){
     return raiz;
 }
 
+struct NoAVL* menor_valor_no_AVL(struct NoAVL* no) {
+    struct NoAVL* atual = no;
+    while (atual && atual->esquerda != NULL) {
+        atual = atual->esquerda;
+    }
+    return atual;
+}
+
+
+struct NoAVL* remover_AVL(struct NoAVL* raiz, int valor) {
+    if (raiz == NULL) {
+        printf("Erro: Valor não encontrado!\n");
+        return raiz;
+    }
+
+    if (valor < raiz->valor) {
+        raiz->esquerda = remover_AVL(raiz->esquerda, valor);
+    } else if (valor > raiz->valor) {
+        raiz->direita = remover_AVL(raiz->direita, valor);
+    } else {
+        // Caso 1: Nó com apenas um filho ou nenhum
+        if (raiz->esquerda == NULL) {
+            struct NoAVL* temp = raiz->direita;
+            free(raiz);
+            return temp;
+        } else if (raiz->direita == NULL) {
+            struct NoAVL* temp = raiz->esquerda;
+            free(raiz);
+            return temp;
+        }
+
+        // Caso 2: Nó com dois filhos
+        struct NoAVL* temp = menor_valor_no_AVL(raiz->direita);
+        raiz->valor = temp->valor;
+        raiz->direita = remover_AVL(raiz->direita, temp->valor);
+    }
+
+    // Atualiza a altura do nó pai
+    raiz->altura = 1 + max(altura(raiz->esquerda), altura(raiz->direita));
+
+    // Verifica o fator de balanceamento
+    int balance = fator_balanceamento(raiz);
+
+    // Se o nó ficou desbalanceado, existem 4 casos a serem tratados
+
+    // Caso 1: Rotação à direita
+    if (balance > 1 && fator_balanceamento(raiz->esquerda) >= 0) {
+        return rotacao_direita(raiz);
+    }
+
+    // Caso 2: Rotação à esquerda-direita
+    if (balance > 1 && fator_balanceamento(raiz->esquerda) < 0) {
+        raiz->esquerda = rotacao_esquerda(raiz->esquerda);
+        return rotacao_direita(raiz);
+    }
+
+    // Caso 3: Rotação à esquerda
+    if (balance < -1 && fator_balanceamento(raiz->direita) <= 0) {
+        return rotacao_esquerda(raiz);
+    }
+
+    // Caso 4: Rotação à direita-esquerda
+    if (balance < -1 && fator_balanceamento(raiz->direita) > 0) {
+        raiz->direita = rotacao_direita(raiz->direita);
+        return rotacao_esquerda(raiz);
+    }
+
+    return raiz;
+}
+
 double arvore_balanceada(int instancia_num) {
     double tempo = 0;
     clock_t begin = clock();
